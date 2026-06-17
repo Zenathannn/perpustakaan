@@ -1,50 +1,74 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, User, Mail, Lock } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-  })
+  });
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-  }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.password) {
-      alert("Password is required.")
-      return
-    }
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // 1. Login ke Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
-      })
-      if (error) {
-        alert(error.message)
-        return
+      });
+
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        return;
       }
-      alert("Login Berhasil")
-      router.push("/dashboard")
+
+      // 2. Ambil data dari tabel profile
+      const { data: profileData, error: profileError } = await supabase
+        .from("profile")
+        .select("id, nama, email, role")
+        .eq("email", formData.email)
+        .single();
+
+      if (profileError || !profileData) {
+        setError("Profil tidak ditemukan. Silakan hubungi admin.");
+        setLoading(false);
+        return;
+      }
+
+      // 3. Simpan data user ke localStorage
+      localStorage.setItem("user", JSON.stringify(profileData));
+
+      // 4. Redirect sesuai role
+      if (profileData.role === "admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/siswa/dashboard");
+      }
     } catch (error) {
-      console.error("Gagal saat Login:", error)
-      alert("Terjadi kesalahan saat login. Silakan coba lagi.")
+      console.error("Error:", error);
+      setError("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center p-4">
@@ -53,12 +77,19 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 rounded-2xl" />
           <div className="relative z-10">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500/5 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                 <User className="w-9 h-8 text-white" />
               </div>
               <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
               <p className="text-gray-600">Sign in to your account</p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700" htmlFor="email">
@@ -77,6 +108,7 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700" htmlFor="password">
                   Password
@@ -101,12 +133,15 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-2xl font-medium hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.02] shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all"
               >
-                Login
+                {loading ? "Loading..." : "Login"}
               </button>
+
               <div className="text-center">
                 <p className="text-sm text-gray-600">
                   Don't have an account?
@@ -121,5 +156,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

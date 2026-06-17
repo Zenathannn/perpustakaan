@@ -55,11 +55,11 @@ export function DataTable<TData, TValue>({
                 <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                         <th
-                          key={header.id}
-                          className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            key={header.id}
+                            className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
                             {!header.isPlaceholder &&
-                              flexRender(header.column.columnDef.header, header.getContext())}
+                                flexRender(header.column.columnDef.header, header.getContext())}
                         </th>
                     ))}
                 </tr>
@@ -77,47 +77,47 @@ export function DataTable<TData, TValue>({
         children: ReactNode;
         direction?: 'left' | 'right';
     }) => (
-        <button 
-          onClick={onClick}
-          disabled={disabled}
-          className="flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            className="flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
             {direction === 'left' && <ChevronLeft size={16} />}
             {children}
             {direction === 'right' && <ChevronRight size={16} />}
-        </button>    
+        </button>
     );
- 
+
     return (
         <div className="space-y-4">
             {/* Header Controls */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="relative flex-1 max-w-sm">
                     <Search
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      size={18}
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={18}
                     />
                     <input
-                      type="text"
-                      placeholder={placeholder}
-                      value={globalFilter}
-                      onChange={(e) => setGlobalFilter(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        type="text"
+                        placeholder={placeholder}
+                        value={globalFilter}
+                        onChange={(e) => setGlobalFilter(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {filterByKelas}
                     <select
-                      value={pageSize}
-                      onChange={(e) => setPageSize(Number(e.target.value))}
-                      className="px-3 py-2 border border-gray-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[120px]"
+                        value={pageSize}
+                        onChange={(e) => setPageSize(Number(e.target.value))}
+                        className="px-3 py-2 border border-gray-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[120px]"
                     >
                         {[5, 10, 20, 50, 100].map((size) => (
                             <option key={size} value={size}>{size}</option>
                         ))}
                     </select>
                     {actions}
-                </div>
+                </div> 
             </div>
 
             {/* Desktop Table */}
@@ -130,8 +130,8 @@ export function DataTable<TData, TValue>({
                                 <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                                     {row.getVisibleCells().map((cell) => (
                                         <td
-                                          key={cell.id}
-                                          className="px-4 py-4 whitespace-nowrap text-sm text-gray-900"
+                                            key={cell.id}
+                                            className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-center"
                                         >
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
@@ -173,7 +173,7 @@ export function DataTable<TData, TValue>({
                         </div>
                     ))
                 ) : (
-                   <EmptyState />
+                    <EmptyState />
                 )}
             </div>
 

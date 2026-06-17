@@ -15,17 +15,17 @@ interface StatCardProps {
   badge?: string;
 }
 
-export default function StatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  color, 
-  subtitle, 
-  tren, 
-  badge 
+export default function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  subtitle,
+  tren,
+  badge
 }: StatCardProps) {
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-0 bg-gradient-to-br from-white to-gray-50/50 rounded-2xl">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-0 bg-white rounded-2xl">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <div className="space-y-1">
           <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -37,7 +37,7 @@ export default function StatCard({
             </Badge>
           )}
         </div>
-        <div 
+        <div
           className={`p-3 rounded-2xl ${color} group-hover:scale-110 transition-transform duration-200`}
         >
           <Icon className="h-5 w-5 text-white" />
