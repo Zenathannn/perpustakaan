@@ -80,22 +80,10 @@ export default function RegisterPage() {
                 return;
             }
 
-            // 3. Insert ke tabel profile
-            const { error: profileError } = await supabase
-                .from("profile")
-                .insert([
-                    {
-                        nama: formData.name,
-                        email: formData.email,
-                        role: "siswa",
-                    }
-                ]);
-
-            if (profileError) {
-                console.error("PROFILE INSERT ERROR:", profileError);
-                setError(`Gagal menyimpan profil: ${profileError.message}`);
-                setLoading(false);
-                return;
+            // 3. (Opsional) Jika kamu tetap butuh mengecek user auth:
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            if (userError || !userData?.user?.id) {
+                console.log("Registrasi Auth berhasil, tapi tidak bisa ambil sesi login.");
             }
 
             alert("✅ Registrasi Berhasil! Silakan login.");

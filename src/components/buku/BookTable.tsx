@@ -18,11 +18,12 @@ import Image from 'next/image'
 
 interface BookTableProps {
     books: Book[]
-    onEdit: (book: Book) => void
-    onDelete: (id: number) => void
+    onEdit?: (book: Book) => void
+    onDelete?: (id: number) => void
+    hideActions?: boolean
 }
 
-export default function BookTable({ books, onEdit, onDelete }: BookTableProps) {
+export default function BookTable({ books, onEdit, onDelete, hideActions = false }: BookTableProps) {
     if (books.length === 0) {
         return (
             <div className="rounded-xl border border-gray-200 bg-white p-12 text-center text-gray-500 shadow-sm">
@@ -56,9 +57,11 @@ export default function BookTable({ books, onEdit, onDelete }: BookTableProps) {
                             <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
                                 Stok
                             </TableHead>
-                            <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
-                                Aksi
-                            </TableHead>
+                            {!hideActions && (
+                                <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
+                                    Aksi
+                                </TableHead>
+                            )}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -104,28 +107,30 @@ export default function BookTable({ books, onEdit, onDelete }: BookTableProps) {
                                             {book.stock}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="text-center py-3">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => onEdit(book)}
-                                                className="inline-flex items-center justify-center gap-1.5 text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all duration-200 rounded-lg shadow-sm px-4 py-1.5 text-sm"
-                                            >
-                                                <Edit className="h-3.5 w-3.5" />
-                                                <span>Edit</span>
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => onDelete(book.id)}
-                                                className="inline-flex items-center justify-center gap-1.5 text-red-700 border-red-300 bg-red-50 hover:bg-red-100 hover:border-red-400 transition-all duration-200 rounded-lg shadow-sm px-4 py-1.5 text-sm"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                                <span>Hapus</span>
-                                            </Button>
-                                        </div>
-                                    </TableCell>
+                                    {!hideActions && (
+                                        <TableCell className="text-center py-3">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => onEdit?.(book)}
+                                                    className="inline-flex items-center justify-center gap-1.5 text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all duration-200 rounded-lg shadow-sm px-4 py-1.5 text-sm"
+                                                >
+                                                    <Edit className="h-3.5 w-3.5" />
+                                                    <span>Edit</span>
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => onDelete?.(book.id)}
+                                                    className="inline-flex items-center justify-center gap-1.5 text-red-700 border-red-300 bg-red-50 hover:bg-red-100 hover:border-red-400 transition-all duration-200 rounded-lg shadow-sm px-4 py-1.5 text-sm"
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                    <span>Hapus</span>
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             )
                         })}

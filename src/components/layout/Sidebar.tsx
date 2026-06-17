@@ -6,77 +6,87 @@ import Link from "next/link";
 import { Home, BookOpen, Library, X, LibraryBig } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Badge } from "../ui/badge";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
-interface userData {
+interface UserData {
     id: string;
     email: string;
     name: string;
     avatar_url: string;
+    role: string;
 }
 
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const pathname = usePathname();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [userData, setUserData] = useState<userData | null>(null);
+    const [userData, setUserData] = useState<UserData | null>(null);
 
-    const menuItems = [
-        { label: "Dashboard", icon: Home, href: "/dashboard" },
-        { label: "Buku", icon: BookOpen, href: "/dashboard/buku" },
-        { label: "Peminjaman", icon: Library, href: "/dashboard/peminjaman" },
+    const isAdmin = pathname.startsWith('/admin');
+    const menuItems = isAdmin ? [
+        { label: "Dashboard", icon: Home, href: "/admin/dashboard" },
+        { label: "Buku", icon: BookOpen, href: "/admin/buku" },
+        { label: "Peminjaman", icon: Library, href: "/admin/peminjaman" },
+    ] : [
+        { label: "Dashboard", icon: Home, href: "/siswa/dashboard" },
+        { label: "Buku", icon: BookOpen, href: "/siswa/buku" },
+        { label: "Peminjaman", icon: Library, href: "/siswa/peminjaman" },
     ];
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const { data, error } = await supabase.auth.getUser();
-
                 if (error || !data.user) {
-                    console.error("Error fetching user:", error);
                     router.push("/auth/login");
                     return;
                 }
 
-                const name = data.user.user_metadata?.name ||
+                // Fetch from profile table for accurate nama & role
+                const { data: profile } = await supabase
+                    .from("profile")
+                    .select("nama, role")
+                    .eq("id", data.user.id)
+                    .single();
+
+                const name = profile?.nama ||
                     data.user.user_metadata?.full_name ||
+                    data.user.user_metadata?.name ||
                     data.user.email?.split('@')[0] ||
-                    'user';
+                    'User';
 
                 setUserData({
                     id: data.user.id,
                     email: data.user.email || '',
                     name: name,
-                    avatar_url: data.user.user_metadata.avatar_url || '',
-                })
-            } catch (error) {
-                console.error("Error fetching user data:", error);
+                    avatar_url: data.user.user_metadata?.avatar_url || '',
+                    role: profile?.role || 'siswa',
+                });
+            } catch (err) {
+                console.error("Error fetching user:", err);
             }
-        }
+        };
         fetchUser();
     }, []);
 
     const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map(part => part.charAt(0).toUpperCase())
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
-    }
+        if (!name) return 'U';
+        return name.split(' ').map(p => p.charAt(0).toUpperCase()).join('').slice(0, 2);
+    };
 
     const SidebarContent = () => (
         <div className="flex h-full flex-col bg-white">
-            <div className="flex h-20 items-center justify-between px-6 border-b bg-white">
+            {/* Header */}
+            <div className="flex h-16 items-center justify-between px-5 border-b bg-white">
                 <div className="flex items-center space-x-3">
-                    <div className="h-12 w-15 border-white rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-md">
+                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-md flex-shrink-0">
                         <LibraryBig className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex flex-col">
-                        <h1 className="tracking-tight font-bold text-xl text-gray-800">Perpustakaan</h1>
-                        <p className="text-xs text-gray-500">Sistem Manajemen Perpustakaan</p>
+                        <h1 className="tracking-tight font-bold text-base text-gray-800 leading-tight">Perpustakaan</h1>
+                        <p className="text-xs text-gray-400">Sistem Manajemen</p>
                     </div>
                 </div>
                 <Button
@@ -89,12 +99,18 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
                 </Button>
             </div>
 
+            {/* Role label */}
+            <div className="px-5 pt-4 pb-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
+                    {isAdmin ? 'Menu Admin' : 'Menu Siswa'}
+                </p>
+            </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-2 bg-white">
+            <nav className="flex-1 px-4 pb-6 space-y-1 bg-white">
                 {menuItems.map(({ label, icon: Icon, href }) => {
-                    const isActive = href === '/dashboard'
-                        ? pathname === '/dashboard'
+                    const isActive = (href === '/siswa/dashboard' || href === '/admin/dashboard')
+                        ? pathname === href
                         : pathname.startsWith(href);
                     return (
                         <Link
@@ -102,39 +118,46 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
                             href={href}
                             onClick={onClose}
                             className={cn(
-                                "cursor-pointer hover:bg-gray-50 focus:bg-blue-50 flex items-center justify-between w-full rounded-[10px] px-3 py-2.5 text-sm font-medium transition-colors",
+                                "flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
                                 isActive
-                                    ? "bg-blue-600 text-white shadow-sm hover:bg-blue-700"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    ? "bg-blue-600 text-white shadow-sm"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                             )}
                         >
-                            <div className="flex items-center space-x-3">
-                                <Icon className="h-4 w-4" />
-                                <span>{label}</span>
-                            </div>
+                            <Icon className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-white" : "text-gray-400")} />
+                            <span>{label}</span>
                         </Link>
                     );
                 })}
             </nav>
 
-            {/* Footer */}
-            <div className="p-4 border-t bg-white">
-                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <Avatar className="h-8 w-8">
+            {/* Footer - User Info */}
+            <div className="p-4 border-t bg-gray-50/80">
+                <div className="flex items-center gap-3">
+                    <Avatar className={`h-9 w-9 flex-shrink-0 ring-2 ring-offset-1 ${userData?.role === 'admin' ? 'ring-blue-200' : 'ring-green-200'}`}>
                         <AvatarImage src={userData?.avatar_url} alt="User Avatar" />
-                        <AvatarFallback>{getInitials(userData?.name || '')}</AvatarFallback>
+                        <AvatarFallback className={`text-white text-xs font-semibold ${userData?.role === 'admin' ? 'bg-gradient-to-br from-blue-600 to-indigo-600' : 'bg-gradient-to-br from-green-500 to-teal-600'}`}>
+                            {getInitials(userData?.name || '')}
+                        </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                            {userData?.name}
+                        <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
+                            {userData?.name || 'Loading...'}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                            {userData?.email}
-                        </p>
+                        <Badge
+                            variant="outline"
+                            className={`text-xs px-1.5 py-0 h-4 mt-0.5 font-medium ${
+                                userData?.role === 'admin'
+                                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                    : 'bg-green-50 text-green-700 border-green-200'
+                            }`}
+                        >
+                            {userData?.role === 'admin' ? 'Admin' : 'Siswa'}
+                        </Badge>
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 
     return (

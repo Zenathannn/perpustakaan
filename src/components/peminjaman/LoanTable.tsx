@@ -15,10 +15,11 @@ import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
 
 interface LoanTableProps {
     loans: Loan[]
-    onReturn: (loanId: number, bookId: number) => void
+    onReturn?: (loanId: number, bookId: number) => void
+    hideActions?: boolean
 }
 
-export default function LoanTable({ loans, onReturn }: LoanTableProps) {
+export default function LoanTable({ loans, onReturn, hideActions = false }: LoanTableProps) {
     const getStatusBadge = (returned: boolean, dueDate: string) => {
         if (returned) {
             return {
@@ -83,9 +84,11 @@ export default function LoanTable({ loans, onReturn }: LoanTableProps) {
                             <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
                                 Status
                             </TableHead>
-                            <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
-                                Aksi
-                            </TableHead>
+                            {!hideActions && (
+                                <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
+                                    Aksi
+                                </TableHead>
+                            )}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -127,19 +130,21 @@ export default function LoanTable({ loans, onReturn }: LoanTableProps) {
                                             <span>{status.text}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-center py-3">
-                                        {!loan.returned && (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => onReturn(loan.id, loan.book_id)}
-                                                className="inline-flex items-center justify-center gap-1.5 text-green-700 border-green-300 bg-green-50 hover:bg-green-100 hover:border-green-400 transition-all duration-200 rounded-lg shadow-sm px-4 py-1.5 text-sm"
-                                            >
-                                                <CheckCircle className="h-3.5 w-3.5" />
-                                                <span>Kembalikan</span>
-                                            </Button>
-                                        )}
-                                    </TableCell>
+                                    {!hideActions && (
+                                        <TableCell className="text-center py-3">
+                                            {!loan.returned && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => onReturn?.(loan.id, loan.book_id)}
+                                                    className="inline-flex items-center justify-center gap-1.5 text-green-700 border-green-300 bg-green-50 hover:bg-green-100 hover:border-green-400 transition-all duration-200 rounded-lg shadow-sm px-4 py-1.5 text-sm"
+                                                >
+                                                    <CheckCircle className="h-3.5 w-3.5" />
+                                                    <span>Kembalikan</span>
+                                                </Button>
+                                            )}
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             )
                         })}

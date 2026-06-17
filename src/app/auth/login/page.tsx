@@ -40,11 +40,18 @@ export default function LoginPage() {
         return;
       }
 
-      // 2. Ambil data dari tabel profile
+      // 2. Ambil data dari tabel profile berdasarkan auth user id
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setError("Sesi login tidak valid. Silakan coba lagi.");
+        setLoading(false);
+        return;
+      }
+
       const { data: profileData, error: profileError } = await supabase
         .from("profile")
         .select("id, nama, email, role")
-        .eq("email", formData.email)
+        .eq("id", user.id)
         .single();
 
       if (profileError || !profileData) {

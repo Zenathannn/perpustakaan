@@ -8,10 +8,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // Path yang menggunakan layout
   const useLayoutPaths = [
-    "/dashboard",
-    "/dashboard/siswa",
-    "/dashboard/kelas",
-    "/dashboard/pelanggaran",
+    "/siswa",
+    "/admin",
   ];
 
   // Path tanpa layout (auth pages)

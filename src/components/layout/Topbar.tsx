@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -14,12 +14,14 @@ import {
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
+import { Badge } from "../ui/badge";
 
 interface userData {
     id: string;
     email: string;
     name: string;
     avatar_url: string;
+    role: string;
 }
 
 export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
@@ -27,13 +29,12 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     const router = useRouter();
     const [userData, setUserData] = useState<userData | null>(null);
 
-    const menuMap: Record<string, string> = {
-        "/dashboard": "Perpustakaan Digital",
-        "/dashboard/buku": "Perpustakaan Digital",
-        "/dashboard/peminjaman": "Perpustakaan Digital",
+    const getTitle = () => {
+        if (pathname.startsWith("/admin")) return "Panel Admin";
+        return "Perpustakaan Digital";
     };
 
-    const title = menuMap[pathname] || "Perpustakaan Digital";
+    const title = getTitle();
 
     const handleLogout = async () => {
         try {
@@ -42,8 +43,8 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 alert(error.message);
                 return;
             }
-            router.push("/auth/login");
             localStorage.clear();
+            router.push("/auth/login");
         } catch (error) {
             console.error("Error during logout:", error);
         }
@@ -53,15 +54,21 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         const fetchUser = async () => {
             try {
                 const { data, error } = await supabase.auth.getUser();
-
                 if (error || !data.user) {
-                    console.error("Error fetching user:", error);
                     router.push("/auth/login");
                     return;
                 }
 
-                const name = data.user.user_metadata?.name ||
+                // Also fetch role from profile table
+                const { data: profile } = await supabase
+                    .from("profile")
+                    .select("nama, role")
+                    .eq("id", data.user.id)
+                    .single();
+
+                const name = profile?.nama ||
                     data.user.user_metadata?.full_name ||
+                    data.user.user_metadata?.name ||
                     data.user.email?.split('@')[0] ||
                     'User';
 
@@ -69,8 +76,9 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                     id: data.user.id,
                     email: data.user.email || '',
                     name: name,
-                    avatar_url: data.user.user_metadata.avatar_url || '',
-                })
+                    avatar_url: data.user.user_metadata?.avatar_url || '',
+                    role: profile?.role || 'siswa',
+                });
             } catch (error) {
                 console.error("Error fetching user data:", error);
             }
@@ -79,18 +87,19 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     }, []);
 
     const getInitials = (name: string) => {
+        if (!name) return "U";
         return name
             .split(' ')
             .map(part => part.charAt(0).toUpperCase())
             .join('')
-            .toUpperCase()
             .slice(0, 2);
     }
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-white">
-            <div className="container flex h-20 items-center justify-between px-6">
-                <div className="flex items-center space-x-4">
+        <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+            <div className="flex h-16 items-center justify-between px-6">
+                {/* Left: Hamburger + Title */}
+                <div className="flex items-center gap-4">
                     <Button
                         variant="ghost"
                         size="icon"
@@ -99,37 +108,65 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                     >
                         <Menu className="w-5 h-5" />
                     </Button>
-                    <div className="flex items-center space-x-2">
-                        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-                    </div>
+                    <h2 className="text-xl font-bold tracking-tight text-gray-800">{title}</h2>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                {/* Right: User info + avatar */}
+                <div className="flex items-center gap-3">
+                    {/* User name + role (visible on md+) */}
+                    <div className="hidden md:flex flex-col items-end">
+                        <span className="text-sm font-semibold text-gray-800 leading-tight">
+                            {userData?.name || "Memuat..."}
+                        </span>
+                        <Badge
+                            variant="outline"
+                            className={`text-xs px-2 py-0 h-5 mt-0.5 ${userData?.role === 'admin'
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : 'bg-green-50 text-green-700 border-green-200'
+                            }`}
+                        >
+                            {userData?.role === 'admin' ? 'Admin' : 'Siswa'}
+                        </Badge>
+                    </div>
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                <Avatar className="w-12 h-12 ring-2 ring-blue-200 ring-offset-2 ring-offset-white shadow-md">
+                            <Button
+                                variant="ghost"
+                                className="flex items-center gap-2 px-2 py-1.5 h-auto rounded-xl hover:bg-gray-100 transition-colors"
+                            >
+                                <Avatar className="w-9 h-9 ring-2 ring-blue-100 ring-offset-1">
                                     <AvatarImage src={userData?.avatar_url || "/avatar.png"} alt="User Avatar" />
-                                    <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-500 text-white font-semibold text-base cursor-pointer hover:from-blue-700 hover:to-blue-600 transition-all duration-200">
+                                    <AvatarFallback className={`text-white font-semibold text-sm ${userData?.role === 'admin' ? 'bg-gradient-to-br from-blue-600 to-indigo-600' : 'bg-gradient-to-br from-green-500 to-teal-600'}`}>
                                         {getInitials(userData?.name || '')}
                                     </AvatarFallback>
                                 </Avatar>
+                                <ChevronDown className="h-3.5 w-3.5 text-gray-400 hidden sm:block" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56 bg-white rounded-[10px]" align="end" forceMount>
-                            <DropdownMenuLabel className="font-normal">
+                        <DropdownMenuContent className="w-56 bg-white rounded-xl shadow-lg border border-gray-100" align="end" forceMount>
+                            <DropdownMenuLabel className="font-normal p-3">
                                 <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none">
+                                    <p className="text-sm font-semibold leading-none text-gray-800">
                                         {userData?.name}
                                     </p>
-                                    <p className="text-xs leading-none text-muted-foreground">
+                                    <p className="text-xs leading-none text-muted-foreground mt-0.5">
                                         {userData?.email}
                                     </p>
+                                    <Badge
+                                        variant="outline"
+                                        className={`w-fit mt-1.5 text-xs ${userData?.role === 'admin'
+                                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                            : 'bg-green-50 text-green-700 border-green-200'
+                                        }`}
+                                    >
+                                        {userData?.role === 'admin' ? '👑 Admin' : '🎓 Siswa'}
+                                    </Badge>
                                 </div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                                className="text-red-600 focus:text-red-600 focus:bg-red-50 rounded-[5px] cursor-pointer"
+                                className="text-red-600 focus:text-red-600 focus:bg-red-50 rounded-lg cursor-pointer mx-1 mb-1"
                                 onClick={handleLogout}
                             >
                                 <LogOut className="mr-2 h-4 w-4" />
