@@ -10,3 +10,4 @@ export default function HomePage() {
   }, [router]);
   return null;
 }
+// trigger deploy baru
