@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Book, BookInput } from '@/types'  // ganti dari @/types/book
+import { Book, BookInput, Category } from '@/types'
 import { supabase } from '@/lib/supabase'
-import { v4 as uuidv4 } from 'uuid'  // ganti dari 'uid' ke 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import { ImageUp, X } from 'lucide-react'
 import Image from 'next/image'
 
@@ -37,12 +37,25 @@ export default function BookForm({
         title: '',
         author: '',
         stock: 1,
-        cover_url: ''
+        cover_url: '',
+        category_id: null
     })
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
     const [previewUrl, setPreviewUrl] = useState<string>('')
+    const [categories, setCategories] = useState<Category[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const { data } = await supabase
+                .from('categories')
+                .select('*')
+                .order('name', { ascending: true })
+            if (data) setCategories(data)
+        }
+        fetchCategories()
+    }, [])
 
     useEffect(() => {
         if (initialData) {
@@ -50,7 +63,8 @@ export default function BookForm({
                 title: initialData.title,
                 author: initialData.author,
                 stock: initialData.stock,
-                cover_url: initialData.cover_url || ''
+                cover_url: initialData.cover_url || '',
+                category_id: initialData.category_id
             })
             setPreviewUrl(initialData.cover_url || '')
         } else {
@@ -58,7 +72,8 @@ export default function BookForm({
                 title: '',
                 author: '',
                 stock: 1,
-                cover_url: ''
+                cover_url: '',
+                category_id: null
             })
             setPreviewUrl('')
         }
@@ -190,6 +205,25 @@ export default function BookForm({
                             className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                             required
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="category" className="text-sm font-medium">
+                            Kategori
+                        </Label>
+                        <select
+                            id="category"
+                            value={formData.category_id ?? ''}
+                            onChange={(e) => setFormData({ ...formData, category_id: e.target.value ? Number(e.target.value) : null })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        >
+                            <option value="">Pilih kategori (opsional)</option>
+                            {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     {/* Upload Gambar */}

@@ -7,6 +7,7 @@ import LoanTable from '@/components/peminjaman/LoanTable'
 import DataTableSearch from '@/components/ui/DataTableSearch'
 import DataTableSort from '@/components/ui/DataTableSort'
 import DataTablePagination from '@/components/ui/DataTablePagination'
+import { BookCheck } from 'lucide-react'
 
 export default function SiswaLoansPage() {
     const [loans, setLoans] = useState<Loan[]>([])
@@ -114,12 +115,17 @@ export default function SiswaLoansPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Riwayat Peminjaman</h1>
-                    <p className="text-muted-foreground">
-                        Lihat daftar buku yang sedang atau pernah kamu pinjam.
-                    </p>
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 shadow-md">
+                <div className="flex items-start gap-4">
+                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                        <BookCheck className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-white">Riwayat Peminjaman</h1>
+                        <p className="text-blue-100 mt-1">
+                            Lihat daftar buku yang sedang atau pernah kamu pinjam. Pantau status dan jatuh tempo peminjamanmu.
+                        </p>
+                    </div>
                 </div>
             </div>
 

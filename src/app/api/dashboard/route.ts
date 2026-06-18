@@ -33,11 +33,11 @@ export async function GET() {
             .select("*", { count: "exact", head: true })
             .gte("created_at", startOfMonth.toISOString().split("T")[0]);
 
-        // Total anggota (profile dengan role siswa)
+        // Total anggota (profile dengan role member)
         const { count: totalMembers } = await supabase
             .from("profile")
             .select("*", { count: "exact", head: true })
-            .eq("role", "siswa");
+            .eq("role", "member");
 
         // Top 5 Buku Terpopuler
         const { data: topBooksRaw } = await supabase
@@ -73,7 +73,7 @@ export async function GET() {
         // 5 Buku Baru
         const { data: newBooks } = await supabase
             .from("books")
-            .select("title, author, created_at, cover_url")
+            .select("title, author, created_at, cover_url, category_id, categories (id, name)")
             .order("created_at", { ascending: false })
             .limit(5);
 

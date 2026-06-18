@@ -77,7 +77,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                     email: data.user.email || '',
                     name: name,
                     avatar_url: data.user.user_metadata?.avatar_url || '',
-                    role: profile?.role || 'siswa',
+                    role: profile?.role || 'member',
                 });
             } catch (error) {
                 console.error("Error fetching user data:", error);
@@ -125,7 +125,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                                 : 'bg-green-50 text-green-700 border-green-200'
                             }`}
                         >
-                            {userData?.role === 'admin' ? 'Admin' : 'Siswa'}
+                            {userData?.role === 'admin' ? 'Admin' : 'Member'}
                         </Badge>
                     </div>
 
@@ -160,7 +160,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                                             : 'bg-green-50 text-green-700 border-green-200'
                                         }`}
                                     >
-                                        {userData?.role === 'admin' ? '👑 Admin' : '🎓 Siswa'}
+                                        {userData?.role === 'admin' ? '👑 Admin' : '👤 Member'}
                                     </Badge>
                                 </div>
                             </DropdownMenuLabel>

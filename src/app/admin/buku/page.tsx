@@ -3,9 +3,9 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
-import { Plus } from 'lucide-react'
+import { Plus, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { Book, BookInput } from '@/types'
+import { Book, BookInput, Category } from '@/types'
 import BookTable from '@/components/buku/BookTable'
 import BookForm from '@/components/buku/BookForm'
 import DataTableSearch from '@/components/ui/DataTableSearch'
@@ -22,12 +22,14 @@ export default function BooksPage() {
     const [sortBy, setSortBy] = useState('id-asc')
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(5)
+    const [categoryFilter, setCategoryFilter] = useState('')
+    const [categories, setCategories] = useState<Category[]>([])
 
     const fetchBooks = async () => {
         try {
             const { data, error } = await supabase
                 .from('books')
-                .select('*')
+                .select('*, categories (id, name)')
                 .order('id', { ascending: true })
 
             if (error) throw error
@@ -40,8 +42,17 @@ export default function BooksPage() {
         }
     }
 
+    const fetchCategories = async () => {
+        const { data } = await supabase
+            .from('categories')
+            .select('*')
+            .order('name', { ascending: true })
+        if (data) setCategories(data)
+    }
+
     useEffect(() => {
         fetchBooks()
+        fetchCategories()
     }, [])
 
     const filteredAndSortedBooks = useMemo(() => {
@@ -54,6 +65,10 @@ export default function BooksPage() {
                     book.title.toLowerCase().includes(query) ||
                     book.author.toLowerCase().includes(query)
             )
+        }
+
+        if (categoryFilter) {
+            result = result.filter((book) => book.category_id === Number(categoryFilter))
         }
 
         const [field, order] = sortBy.split('-')
@@ -75,7 +90,7 @@ export default function BooksPage() {
         })
 
         return result
-    }, [books, searchQuery, sortBy])
+    }, [books, searchQuery, sortBy, categoryFilter])
 
     const paginatedBooks = useMemo(() => {
         const start = (currentPage - 1) * itemsPerPage
@@ -143,36 +158,54 @@ export default function BooksPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Manajemen Buku</h1>
-                    <p className="text-muted-foreground">
-                        Kelola daftar buku perpustakaan di sini.
-                    </p>
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 shadow-md">
+                <div className="flex items-start gap-4">
+                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                        <BookOpen className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-2xl font-bold tracking-tight text-white">Manajemen Buku</h1>
+                        <p className="text-blue-100 mt-1">
+                            Kelola daftar buku perpustakaan. Tambah, edit, atau hapus koleksi buku di sini.
+                        </p>
+                    </div>
+                    <Button
+                        onClick={() => {
+                            setEditingBook(null)
+                            setFormOpen(true)
+                        }}
+                        className="bg-white hover:bg-blue-50 text-blue-700 shadow-md flex-shrink-0"
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        <span>Tambah Buku</span>
+                    </Button>
                 </div>
-                <Button
-                    onClick={() => {
-                        setEditingBook(null)
-                        setFormOpen(true)
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700"
-                >
-                    <Plus className="mr-2 h-4 w-4 text-white" />
-                    <span className='text-white'>Pinjam Buku</span>
-                </Button>
             </div>
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <DataTableSearch
                     placeholder="Cari judul atau pengarang..."
                     value={searchQuery}
                     onChange={setSearchQuery}
+                    className="sm:max-w-md"
                 />
-                <DataTableSort
-                    options={sortOptions}
-                    value={sortBy}
-                    onChange={setSortBy}
-                />
+                <div className="flex items-center gap-3 flex-shrink-0">
+                    <select
+                        value={categoryFilter}
+                        onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }}
+                        className="px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[150px]"
+                    >
+                        <option value="">Semua Kategori</option>
+                        {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                    </select>
+                    <DataTableSort
+                        options={sortOptions}
+                        value={sortBy}
+                        onChange={setSortBy}
+                    />
+                </div>
             </div>
 
             <BookTable

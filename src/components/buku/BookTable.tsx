@@ -55,6 +55,9 @@ export default function BookTable({ books, onEdit, onDelete, hideActions = false
                                 Pengarang
                             </TableHead>
                             <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
+                                Kategori
+                            </TableHead>
+                            <TableHead className="text-center text-blue-800 font-semibold text-sm py-4">
                                 Stok
                             </TableHead>
                             {!hideActions && (
@@ -98,6 +101,15 @@ export default function BookTable({ books, onEdit, onDelete, hideActions = false
                                     </TableCell>
                                     <TableCell className="text-left text-gray-600 text-sm py-3">
                                         {book.author}
+                                    </TableCell>
+                                    <TableCell className="text-center py-3">
+                                        {book.categories ? (
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                {book.categories.name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-gray-400">—</span>
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-center py-3">
                                         <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium ${book.stock > 0

@@ -1,28 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import React from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, BookOpen, Library, X, LibraryBig } from "lucide-react";
 import { Button } from "../ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Badge } from "../ui/badge";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
-
-interface UserData {
-    id: string;
-    email: string;
-    name: string;
-    avatar_url: string;
-    role: string;
-}
 
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const pathname = usePathname();
-    const router = useRouter();
-    const [userData, setUserData] = useState<UserData | null>(null);
 
     const isAdmin = pathname.startsWith('/admin');
     const menuItems = isAdmin ? [
@@ -34,47 +21,6 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         { label: "Buku", icon: BookOpen, href: "/siswa/buku" },
         { label: "Peminjaman", icon: Library, href: "/siswa/peminjaman" },
     ];
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const { data, error } = await supabase.auth.getUser();
-                if (error || !data.user) {
-                    router.push("/auth/login");
-                    return;
-                }
-
-                // Fetch from profile table for accurate nama & role
-                const { data: profile } = await supabase
-                    .from("profile")
-                    .select("nama, role")
-                    .eq("id", data.user.id)
-                    .single();
-
-                const name = profile?.nama ||
-                    data.user.user_metadata?.full_name ||
-                    data.user.user_metadata?.name ||
-                    data.user.email?.split('@')[0] ||
-                    'User';
-
-                setUserData({
-                    id: data.user.id,
-                    email: data.user.email || '',
-                    name: name,
-                    avatar_url: data.user.user_metadata?.avatar_url || '',
-                    role: profile?.role || 'siswa',
-                });
-            } catch (err) {
-                console.error("Error fetching user:", err);
-            }
-        };
-        fetchUser();
-    }, []);
-
-    const getInitials = (name: string) => {
-        if (!name) return 'U';
-        return name.split(' ').map(p => p.charAt(0).toUpperCase()).join('').slice(0, 2);
-    };
 
     const SidebarContent = () => (
         <div className="flex h-full flex-col bg-white">
@@ -102,7 +48,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
             {/* Role label */}
             <div className="px-5 pt-4 pb-2">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-                    {isAdmin ? 'Menu Admin' : 'Menu Siswa'}
+                    {isAdmin ? 'Menu Admin' : 'Menu Member'}
                 </p>
             </div>
 
@@ -131,32 +77,6 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
                 })}
             </nav>
 
-            {/* Footer - User Info */}
-            <div className="p-4 border-t bg-gray-50/80">
-                <div className="flex items-center gap-3">
-                    <Avatar className={`h-9 w-9 flex-shrink-0 ring-2 ring-offset-1 ${userData?.role === 'admin' ? 'ring-blue-200' : 'ring-green-200'}`}>
-                        <AvatarImage src={userData?.avatar_url} alt="User Avatar" />
-                        <AvatarFallback className={`text-white text-xs font-semibold ${userData?.role === 'admin' ? 'bg-gradient-to-br from-blue-600 to-indigo-600' : 'bg-gradient-to-br from-green-500 to-teal-600'}`}>
-                            {getInitials(userData?.name || '')}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
-                            {userData?.name || 'Loading...'}
-                        </p>
-                        <Badge
-                            variant="outline"
-                            className={`text-xs px-1.5 py-0 h-4 mt-0.5 font-medium ${
-                                userData?.role === 'admin'
-                                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                    : 'bg-green-50 text-green-700 border-green-200'
-                            }`}
-                        >
-                            {userData?.role === 'admin' ? 'Admin' : 'Siswa'}
-                        </Badge>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 

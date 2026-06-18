@@ -1,10 +1,18 @@
 // types/index.ts
+export interface Category {
+  id: number;
+  name: string;
+  created_at?: string;
+}
+
 export interface Book {
   id: number;
   title: string;
   author: string;
   stock: number;
   cover_url: string | null;
+  category_id: number | null;
+  categories?: Category | null;
   created_at: string;
 }
 
@@ -13,6 +21,7 @@ export interface BookInput {
   author: string;
   stock: number;
   cover_url?: string;
+  category_id?: number | null;
 }
 
 export interface Loan {

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BookOpen, BookCheck, Clock, AlertCircle, BookMarked, Star, ChevronRight } from "lucide-react";
+import { BookOpen, BookCheck, Clock, AlertCircle, BookMarked, Star, ChevronRight, ImageIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
@@ -20,7 +20,7 @@ interface SiswaStats {
     due_date: string;
     returned: boolean;
   }[];
-  newBooks: { title: string; author: string; created_at: string; cover_url: string | null }[];
+  newBooks: { title: string; author: string; created_at: string; cover_url: string | null; categories?: { id: number; name: string } | null }[];
 }
 
 export default function SiswaDashboardPage() {
@@ -74,11 +74,16 @@ export default function SiswaDashboardPage() {
         const totalBooksAvailable = (totalBooks || 0) - (borrowedData?.length || 0);
 
         // Get new books
-        const { data: newBooks } = await supabase
+        const { data: newBooksRaw } = await supabase
           .from("books")
-          .select("title, author, created_at, cover_url")
+          .select("title, author, created_at, cover_url, categories (id, name)")
           .order("created_at", { ascending: false })
           .limit(5);
+
+        const newBooks = (newBooksRaw || []).map((b: any) => ({
+          ...b,
+          categories: Array.isArray(b.categories) ? b.categories[0] : b.categories || null,
+        }));
 
         setStats({
           myActiveLoans,
@@ -127,14 +132,14 @@ export default function SiswaDashboardPage() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 rounded-full p-3">
-              <BookOpen className="h-8 w-8 text-white" />
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 shadow-md">
+          <div className="flex items-start gap-4">
+            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+              <BookOpen className="h-6 w-6 text-white" />
             </div>
             <div>
               <p className="text-blue-100 text-sm font-medium">Selamat datang kembali,</p>
-              <h1 className="text-2xl font-bold">{userName} 👋</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-white">{userName}</h1>
               <p className="text-blue-200 text-sm mt-1">
                 Kamu memiliki <span className="font-bold text-white">{stats.myActiveLoans} buku aktif</span> yang sedang dipinjam
                 {stats.myOverdueLoans > 0 && (
@@ -279,20 +284,27 @@ export default function SiswaDashboardPage() {
                   {stats.newBooks.map((book, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">
                       <div className="relative flex-shrink-0">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-sm font-bold">
-                            {getInitials(book.title)}
+                        <Avatar className="h-12 w-12 rounded-lg">
+                          <AvatarImage src={book.cover_url || undefined} alt={book.title} className="object-cover" />
+                          <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-sm font-bold rounded-lg">
+                            <ImageIcon className="h-5 w-5" />
                           </AvatarFallback>
                         </Avatar>
-                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white bg-yellow-500">
+                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-yellow-500 shadow-sm">
                           {index + 1}
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-800 text-sm truncate">{book.title}</p>
-                        <p className="text-xs text-gray-500">oleh {book.author}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <p className="text-xs text-gray-500">oleh {book.author}</p>
+                          {book.categories && (
+                            <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium">
+                              {book.categories.name}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-xs text-gray-400 flex-shrink-0">{formatDate(book.created_at)}</span>
                     </div>
                   ))}
                 </div>

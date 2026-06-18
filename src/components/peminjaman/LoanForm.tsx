@@ -19,8 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Book } from '@/types'
-import { LoanInput } from '@/types'
+import { Book, Category, LoanInput } from '@/types'
 
 interface LoanFormProps {
     open: boolean
@@ -102,11 +101,18 @@ export default function LoanForm({ open, onOpenChange, onSubmit, books }: LoanFo
                                             value={book.id.toString()}
                                             className="hover:bg-blue-50 focus:bg-blue-50 cursor-pointer"
                                         >
-                                            <div className="flex items-center justify-between w-full gap-4">
-                                                <span className="font-medium text-gray-700">{book.title}</span>
-                                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                                    Stok: {book.stock}
-                                                </span>
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center justify-between w-full gap-4">
+                                                    <span className="font-medium text-gray-700">{book.title}</span>
+                                                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                        Stok: {book.stock}
+                                                    </span>
+                                                </div>
+                                                {book.categories && (
+                                                    <span className="text-[11px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded self-start">
+                                                        {book.categories.name}
+                                                    </span>
+                                                )}
                                             </div>
                                         </SelectItem>
                                     ))

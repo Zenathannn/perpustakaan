@@ -131,13 +131,18 @@ export default function PinjamBookDialog({ book, open, onOpenChange, onSuccess }
                             <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Buku yang dipinjam</p>
                             <p className="font-bold text-gray-800 text-base leading-tight">{book?.title}</p>
                             <p className="text-sm text-gray-500 mt-0.5">oleh {book?.author}</p>
-                            <div className="mt-2 flex items-center gap-1.5">
+                            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                                {book?.categories && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                        {book.categories.name}
+                                    </span>
+                                )}
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
                                     (book?.stock || 0) > 0
                                         ? 'bg-green-100 text-green-700 border-green-200'
                                         : 'bg-red-100 text-red-700 border-red-200'
                                 }`}>
-                                    Stok: {book?.stock || 0} tersedia
+                                    Stok: {book?.stock || 0}
                                 </span>
                             </div>
                         </div>

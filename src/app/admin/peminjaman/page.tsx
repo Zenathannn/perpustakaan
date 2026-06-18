@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
-import { Plus } from 'lucide-react'
+import { Plus, Library } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Loan, Book } from '@/types'
 import LoanTable from '@/components/peminjaman/LoanTable'
@@ -48,7 +48,7 @@ export default function LoansPage() {
         try {
             const { data, error } = await supabase
                 .from('books')
-                .select('*')
+                .select('*, categories (id, name)')
                 .gt('stock', 0)
 
             if (error) throw error
@@ -170,20 +170,25 @@ export default function LoansPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Manajemen Peminjaman</h1>
-                    <p className="text-muted-foreground">
-                        Kelola peminjaman buku perpustakaan di sini.
-                    </p>
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 shadow-md">
+                <div className="flex items-start gap-4">
+                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                        <Library className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-2xl font-bold tracking-tight text-white">Manajemen Peminjaman</h1>
+                        <p className="text-blue-100 mt-1">
+                            Pantau dan kelola peminjaman buku perpustakaan. Catat peminjaman baru dan proses pengembalian.
+                        </p>
+                    </div>
+                    <Button
+                        onClick={() => setFormOpen(true)}
+                        className="bg-white hover:bg-blue-50 text-blue-700 shadow-md flex-shrink-0"
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        <span>Pinjam Buku</span>
+                    </Button>
                 </div>
-                <Button
-                    onClick={() => setFormOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                >
-                    <Plus className="mr-2 h-4 w-4 text-white" />
-                    <span className='text-white'>Pinjam Buku</span>
-                </Button>
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

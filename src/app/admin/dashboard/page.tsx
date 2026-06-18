@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
     BookOpen, BookCheck, BookX, CalendarRange, TrendingUp, Star,
-    PieChart as PieChartIcon, Clock, Users, AlertTriangle, ChevronRight
+    PieChart as PieChartIcon, Clock, Users, AlertTriangle, ChevronRight, LayoutDashboard, X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ export default function AdminDashboardPage() {
         topBooks: [], newBooks: [], monthlyTrend: [], recentLoans: [],
     });
     const [loading, setLoading] = useState(true);
+    const [showOverdueAlert, setShowOverdueAlert] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -91,27 +92,46 @@ export default function AdminDashboardPage() {
     return (
         <div className="min-h-screen">
             <div className="max-w-7xl mx-auto space-y-8">
-                <h1 className="text-2xl font-bold bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                    Dashboard Admin
-                </h1>
+                {/* Header */}
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 shadow-md">
+                    <div className="flex items-start gap-4">
+                        <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                            <LayoutDashboard className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard Admin</h1>
+                            <p className="text-blue-100 mt-1">Ringkasan aktivitas dan statistik perpustakaan.</p>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Alert for overdue */}
-                {stats.overdueLoans > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-                        <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                        <div>
-                            <p className="text-red-800 font-semibold text-sm">
+                {stats.overdueLoans > 0 && showOverdueAlert && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                        <div className="bg-orange-100 rounded-lg p-2 flex-shrink-0 mt-0.5">
+                            <AlertTriangle className="h-5 w-5 text-orange-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-orange-800 font-semibold text-sm">
                                 {stats.overdueLoans} peminjaman melewati jatuh tempo!
                             </p>
-                            <p className="text-red-600 text-xs mt-0.5">
+                            <p className="text-orange-600 text-xs mt-0.5">
                                 Segera hubungi anggota terkait untuk pengembalian buku.
                             </p>
                         </div>
-                        <Link href="/admin/peminjaman" className="ml-auto">
-                            <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300 cursor-pointer hover:bg-red-200 transition-colors text-xs whitespace-nowrap flex items-center gap-1">
-                                Cek Sekarang <ChevronRight className="h-3 w-3" />
-                            </Badge>
-                        </Link>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <Link href="/admin/peminjaman">
+                                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 cursor-pointer hover:bg-orange-200 transition-colors text-xs whitespace-nowrap flex items-center gap-1 px-3 py-1.5">
+                                    Cek Sekarang <ChevronRight className="h-3 w-3" />
+                                </Badge>
+                            </Link>
+                            <button
+                                onClick={() => setShowOverdueAlert(false)}
+                                className="text-orange-400 hover:text-orange-600 transition-colors p-1"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
                 )}
 
