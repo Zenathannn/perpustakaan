@@ -6,7 +6,7 @@ import React from "react";
 export default function HomePage() {
   const router = useRouter();
   React.useEffect(() => {
-    router.replace('/dashboard')
+    router.replace('/auth/login')
   }, [router]);
   return null;
 }
